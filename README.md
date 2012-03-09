@@ -18,14 +18,15 @@ You will need to include and initiate it in your bootstrap.
 * Open Bootstrap.php in your "application" folder.
 * Add the following lines to somewhere at the top to include it:
 
-```php
+```
 // Get pdo model and database adapter
 require_once LIBRARY_PATH.'/pdo/PdoModel.php';
 require_once LIBRARY_PATH.'/pdo/Adapters/MysqlDbAdapter.php';
 ```
 
 * Now we need to open the connection and set the PdoModel default connection. First create the PDO variable in bootstrap class:
-```php
+
+```
 /**
  * PDO database connection.
  * 
@@ -33,7 +34,10 @@ require_once LIBRARY_PATH.'/pdo/Adapters/MysqlDbAdapter.php';
  */
 private $pdo;
 ```
-*Now create a new method into your application/Bootstrap.php:
+
+* Now create a new method into your application/Bootstrap.php:
+
+```
 /**
  * Initiates a database connection.
  */
@@ -47,19 +51,17 @@ private function initDatabaseConnection() {
  
     $this->pdo->exec('SET NAMES UTF8');
 }
-This method needs to be called somehow, update the Boostrapper::bootstrapApplication() method and add the following line:
+```
 
-1
+* This method needs to be called somehow, update the Boostrapper::bootstrapApplication() method and add the following line:
+
+```
 $this->initDatabaseConnection();
-As you may have noticed, we are using constants to define the database authentication properties. Define these in your server-specific application/config/config.php file:
+```
 
-1
-2
-3
-4
-5
-6
-7
+* As you may have noticed, we are using constants to define the database authentication properties. Define these in your server-specific application/config/config.php file:
+
+```
 /**
  * Database configuration.
  */
@@ -67,50 +69,54 @@ define('DB_HOST', '127.0.0.1');
 define('DB_NAME', 'lightspeed');
 define('DB_USERNAME', 'lightspeed');
 define('DB_PASSWORD', '');
-Make sure you replace the values according to your database privilege settings.
+```
+
+* Make sure you replace the values according to your database privilege settings.
+
 
 How to use it
+-------------
 You should name your models according to CamelCase convention and the filename should match the class name and end with "Model". By default, the model files are stored in /application/models.
 
+
 Creating models
+---------------
 Each model corresponds to a database table. Extend the PdoModel class and create public member variables for all the columns in your table. As class variables have some naming limits, you should use underscore "_" for seperating words, the same for class name.
 
 For example if you have a table:
 
-1
-2
-3
-4
-5
+```
 CREATE TABLE `search_results` (
   `id` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
   `search_phrase` VARCHAR(255) UNSIGNED NOT NULL,
   `results` int(10) UNSIGNED NOT NULL
 )
+```
+
 The corresponding model class in /application/models/SearchResultsModel.php would be at minimal:
 
-1
-2
-3
-4
-5
+```
 class SearchResultsModel extends PdoModel {
     public $id;
     public $search_phrase;
     public $results;
 }
+```
+
 The class name SearchResultsModel is mapped to "search_results" table name and the public members define the table columns. This is useful for auto-complete functionality of more advanced IDEs.
 
 There are some methods in the PdoModel implementation that expects the primary key to be called "id". Should you call it anything else and still want to use methods like PdoModel::load(), you can set custom primary key name by setting $_primaryKeyName in your extended class.
 
+
 Static methods
+--------------
 The PdoModel includes some useful static methods that can be used to quickly manipulate the database. Selection of the most useful ones include:
 
-load($primaryKeyValue)
+* __load($primaryKeyValue)__
 
 Very useful method for retrieving a single row from the database by primary key value. Override $_primaryKeyName if you dont use "id". Returns instance of the model if a row is found and null otherwise. Access the column values using the public class variables.
 
-loadWhere(array $where)
+* __loadWhere(array $where)__
 
 Loads a single row from the database that match certain criteria. Read the method-level documentation to see exactly how to use it.
 
