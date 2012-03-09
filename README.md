@@ -18,9 +18,9 @@ You will need to include and initiate it in your bootstrap.
 * Open Bootstrap.php in your "application" folder.
 * Add the following lines to somewhere at the top to include it:
 ```php
-// Get pdo model and database adapter
-require_once LIBRARY_PATH.'/pdo/PdoModel.php';
-require_once LIBRARY_PATH.'/pdo/Adapters/MysqlDbAdapter.php';
+	// Get pdo model and database adapter
+	require_once LIBRARY_PATH.'/pdo/PdoModel.php';
+	require_once LIBRARY_PATH.'/pdo/Adapters/MysqlDbAdapter.php';
 ```
 * Now we need to open the connection and set the PdoModel default connection. First create the PDO variable in bootstrap class:
 ```php
