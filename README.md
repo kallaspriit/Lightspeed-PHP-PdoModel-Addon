@@ -1,49 +1,37 @@
-**Lightspeed-PHP addon for communicating to databases using PDO.**
+Lightspeed-PHP PDO database layer
+=================================
+
+![Lightspeed-PHP logo](http://lightspeed-php.com/images/logo.png "Lightspeed-PHP")
+
+**[LIGHTSPEED-PHP](http://lightspeed-php.com) IS A MINIMALISTIC AND FAST PHP FRAMEWORK** aiming to provide basic structure that helps you build your applications faster and more efficiently on solid architecture. It's designed to be small, fast, easy to understand and extend.
+
 
 How to install
+--------------
 Simply download the archive and unpack it to the root directory of your project. Creates a "pdo" and "data-source" directories under "library".
 
+
 How to set it up
+----------------
 You will need to include and initiate it in your bootstrap.
 
-Open Bootstrap.php in your "application" folder.
-Add the following lines to somewhere at the top to include it:
-
-1
-2
-3
+* Open Bootstrap.php in your "application" folder.
+* Add the following lines to somewhere at the top to include it:
+```php
 // Get pdo model and database adapter
 require_once LIBRARY_PATH.'/pdo/PdoModel.php';
 require_once LIBRARY_PATH.'/pdo/Adapters/MysqlDbAdapter.php';
-Now we need to open the connection and set the PdoModel default connection. First create the PDO variable in bootstrap class:
-
-1
-2
-3
-4
-5
-6
+```
+* Now we need to open the connection and set the PdoModel default connection. First create the PDO variable in bootstrap class:
+```php
 /**
  * PDO database connection.
  * 
  * @var PDO
  */
 private $pdo;
-Now create a new method into your application/Bootstrap.php:
-
-1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-13
+```
+*Now create a new method into your application/Bootstrap.php:
 /**
  * Initiates a database connection.
  */
