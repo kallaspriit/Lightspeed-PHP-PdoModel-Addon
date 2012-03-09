@@ -10,6 +10,8 @@ How to install
 --------------
 Simply download the archive and unpack it to the root directory of your project. Creates a "pdo" and "data-source" directories under "library".
 
+Up-to-date version of this tutorial is available on the [addons page](http://lightspeed-php.com/add-ons/pdo-database-model).
+
 
 How to set it up
 ----------------
