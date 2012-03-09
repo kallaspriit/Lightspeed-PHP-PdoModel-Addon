@@ -112,95 +112,101 @@ Static methods
 --------------
 The PdoModel includes some useful static methods that can be used to quickly manipulate the database. Selection of the most useful ones include:
 
-* __load($primaryKeyValue)__
+**load($primaryKeyValue)**
 
 Very useful method for retrieving a single row from the database by primary key value. Override $_primaryKeyName if you dont use "id". Returns instance of the model if a row is found and null otherwise. Access the column values using the public class variables.
 
-* __loadWhere(array $where)__
+**loadWhere(array $where)**
 
 Loads a single row from the database that match certain criteria. Read the method-level documentation to see exactly how to use it.
 
-find(array $where = null, $order = null)
+**find(array $where = null, $order = null)**
 
 Searches for any number of rows matching given conditions. Does not actually fetch the results before the data is iterated over or you call getItems() method.
 
-fetch($query, array $bind = array(), $decorator = null)
+**fetch($query, array $bind = array(), $decorator = null)**
 
 Very useful and similar to above but you build the query yourself, see the documentation for details. As it's not table-specific, you can call it directly on the PdoModel class, not any of the extended ones.
 
-fetchOne($query, array $bind = array(), $decorator = null)
+**fetchOne($query, array $bind = array(), $decorator = null)**
 
 Same as above but instancly fetches and returns the first matching row.
 
-fetchColumn($query, array $bind = array(), $decorator = null)
+**fetchColumn($query, array $bind = array(), $decorator = null)**
 
 Fetches and returns the first column of the first matching row.
 
-execute($query, array $bind = array())
+**execute($query, array $bind = array())**
 
 Executes a generic database query, for example to update or delete something. Returns whether it was successful.
 
-insert(array $populate)
+**insert(array $populate)**
 
 Inserts a new row into the database. The model is populated from the given array, keys of which should match the column names. You could also create an instance of a model, fill in its column values and call save().
 
-deleteByPK($primaryKeyValue)
+**deleteByPK($primaryKeyValue)**
 
 Deletes a row by primary key values.
 
-deleteWhere(array $where)
+**deleteWhere(array $where)**
 
 Deletes rows that match certain conditions. Read the method documentation on how to use the $where array.
 
-setDefaultConnection(PDO $connection)
+**setDefaultConnection(PDO $connection)**
 
 You will usually call it once in your bootstrapper to set the default connection that following instances of models will use. There is a getter for this too.
 
-setDefaultAdapter(DbAdapter $adapter)
+**setDefaultAdapter(DbAdapter $adapter)**
 
 Similarly to the connection method above, you will usually call it once in your bootstrapper to set the default adapter that following instances of models will use.
 
-beginTransaction(PDO $connection = null)
+**beginTransaction(PDO $connection = null)**
 
 Starts a new transaction. As always, uses the default connection if not specified.
 
-commit(PDO $connection = null)
+**commit(PDO $connection = null)**
 
 Commits current transaction.
 
-rollBack(PDO $connection = null)
+**rollBack(PDO $connection = null)**
 
 Rolls back ongoing transaction.
 
+
 If you already have an instance
+-------------------------------
 Once you've got an instance of a model for example by calling $row = SearchResultsModel::load(1);, the following methods might be useful to know:
 
-save(array $populate = null, $forceInsert = false)
+**save(array $populate = null, $forceInsert = false)**
 
 Make whatever changes to your data and call this to store it. If the primary key column has a value, updating an existing row is attempted, else a new one is inserted.
 
-populate(array $data)
+**populate(array $data)**
 
 Instead of setting each column value separately, you can set all of them using this method.
 
-setNull($propertyName)
+**setNull($propertyName)**
 
 If you need to make a column value NULL, doing simple $model->column = null; wont have effect. Use this method instead.
 
-getLastQuery()
+**getLastQuery()**
 
 If using any of the magic methods of this class, you can call this to see what query was last used. Useful for debugging. Use getLastBind() to get the data that was binded to the query.
 
+
 SQL expressions as column values
+--------------------------------
 Sometimes you want to include SQL expressions in your values and you don't want the model to escape these for you. To accomplish this, create an instance of SqlExpr class.
 
 For example to update the modified date:
 
-1
-2
-3
+```
 $model = UserModel::load($userId);
 $model->modified_date = new SqlExpr('NOW()');
 $model->save();
+```
+
+
 Other databases
+---------------
 Default implementation only includes an adapter for MySQL but since it's based on PDO, it can be easily extended to support other databases.
