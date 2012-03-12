@@ -24,7 +24,7 @@
  *
  * @author Priit Kallas <kallaspriit@gmail.com>
  * @package Lightspeed
- * @subpackage Model
+ * @subpackage Pdo
  */
 
 // Require implemented interface
