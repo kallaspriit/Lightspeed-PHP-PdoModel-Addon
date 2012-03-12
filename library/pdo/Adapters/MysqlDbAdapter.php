@@ -22,10 +22,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  *
- * @id $Id: MysqlDbAdapter.php 57 2011-02-13 12:36:08Z kallaspriit $
- * @author $Author: kallaspriit $
- * @version $Revision: 57 $
- * @modified $Date: 2011-02-13 14:36:08 +0200 (Sun, 13 Feb 2011) $
+ * @author Priit Kallas <kallaspriit@gmail.com>
  * @package Lightspeed
  * @subpackage Model
  */

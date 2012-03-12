@@ -22,10 +22,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  *
- * @id $Id: PdoModel.php 122 2011-05-18 12:10:10Z kallaspriit $
- * @author $Author: kallaspriit $
- * @version $Revision: 122 $
- * @modified $Date: 2011-05-18 15:10:10 +0300 (Wed, 18 May 2011) $
+ * @author Priit Kallas <kallaspriit@gmail.com>
  * @package Lightspeed
  * @subpackage Model
  */

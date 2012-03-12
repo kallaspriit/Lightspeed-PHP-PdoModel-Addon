@@ -22,10 +22,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  *
- * @id $Id: SqlExpr.php 65 2011-03-01 16:01:06Z kallaspriit $
- * @author $Author: kallaspriit $
- * @version $Revision: 65 $
- * @modified $Date: 2011-03-01 18:01:06 +0200 (Tue, 01 Mar 2011) $
+ * @author Priit Kallas <kallaspriit@gmail.com>
  * @package Lightspeed
  * @subpackage Model
  */
@@ -34,10 +31,7 @@
  * Represents an SQL expression that should be included in the query as-is not
  * as a string.
  *
- * @id $Id: SqlExpr.php 65 2011-03-01 16:01:06Z kallaspriit $
- * @author $Author: kallaspriit $
- * @version $Revision: 65 $
- * @modified $Date: 2011-03-01 18:01:06 +0200 (Tue, 01 Mar 2011) $
+ * @author Priit Kallas <kallaspriit@gmail.com>
  * @package Lightspeed
  * @subpackage Model
  */
