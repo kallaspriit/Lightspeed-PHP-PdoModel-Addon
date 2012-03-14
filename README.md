@@ -4,7 +4,7 @@ Lightspeed-PHP PDO database layer
 ![Lightspeed-PHP logo](http://lightspeed-php.com/images/logo.png "Lightspeed-PHP")
 
 **[LIGHTSPEED-PHP](http://lightspeed-php.com) IS A MINIMALISTIC AND FAST PHP FRAMEWORK** aiming to provide basic structure that helps you build your applications faster and more efficiently on solid architecture. It's designed to be small, fast, easy to understand and extend.
-
+[Check out the parent project](https://github.com/kallaspriit/Lightspeed-PHP)
 
 How to install
 --------------
