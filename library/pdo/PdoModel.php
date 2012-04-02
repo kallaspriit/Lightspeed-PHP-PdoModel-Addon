@@ -981,19 +981,40 @@ class PdoModel implements Iterator, DataSource {
 	/**
 	 * Fetches and returns a single item matching given query.
 	 * 
-	 * The result is the same as calling PdoModel::fetch()->getItem().
-	 * 
 	 * @param string $query The query to execute
 	 * @param array $bind Values to bind to the query
-	 * @param function $decorator Callback function to decorate every result
+	 * @param PDO $connection Optional connection to use
 	 * @return array|null Array of data or null if nothing matches.
 	 */
 	public static function fetchOne(
 		$query,
 		array $bind = array(),
-		$decorator = null
+		PDO $connection = null
 	) {
-		return self::fetch($query, $bind, $decorator)->getItem();
+		if (!isset($connection)) {
+			$connection = self::getDefaultConnection();
+		}
+		
+		$stmt = $connection->prepare($query);
+		
+		foreach ($bind as $bindKey => $bindValue) {
+			$stmt->bindValue($bindKey, $bindValue);
+		}
+		
+		if (!$stmt->execute()) {
+			throw new Exception(
+				'Executing query "'.$query.'" with parameters "'.
+				json_encode($bind).'" failed'
+			);
+		}
+		
+		$result = $stmt->fetch(PDO::FETCH_ASSOC);
+		
+		if ($result === false) {
+			$result = null;
+		}
+		
+		return $result;
 	}
 	
 	/**
