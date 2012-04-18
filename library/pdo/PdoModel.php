@@ -40,10 +40,10 @@ require_once LIBRARY_PATH.'/data-source/DataSource.php';
  *
  * Depends on database library.
  *
- * @id $Id: PdoModel.php 122 2011-05-18 12:10:10Z kallaspriit $
- * @author $Author: kallaspriit $
- * @version $Revision: 122 $
- * @modified $Date: 2011-05-18 15:10:10 +0300 (Wed, 18 May 2011) $
+ * @id $Id: PdoModel.php 346560 2012-04-12 08:28:33Z priitk $
+ * @author $Author: priitk $
+ * @version $Revision: 346560 $
+ * @modified $Date: 2012-04-12 11:28:33 +0300 (N, 12 apr 2012) $
  * @package Lightspeed
  * @subpackage Model
  */
@@ -1148,6 +1148,17 @@ class PdoModel implements Iterator, DataSource {
 			$this->_lastQuery,
 			$this->_lastBind
 		)->fetch(PDO::FETCH_ASSOC);
+		
+		if ($this->_resultset !== false && isset($this->_decorator)) {
+			if (!is_callable($this->_decorator)) {
+				throw new Exception('Given fetch decorator is not callable');
+			}
+			
+			$this->_resultset = call_user_func_array(
+				$this->_decorator,
+				array($this->_resultset)
+			);
+		}
     }
 
 	/**
@@ -1176,6 +1187,17 @@ class PdoModel implements Iterator, DataSource {
     public function next() {
 		$this->_resultset = $this->_lastStatement->fetch(PDO::FETCH_ASSOC);
 		$this->_resultKey++;
+		
+		if ($this->_resultset !== false && isset($this->_decorator)) {
+			if (!is_callable($this->_decorator)) {
+				throw new Exception('Given fetch decorator is not callable');
+			}
+			
+			$this->_resultset = call_user_func_array(
+				$this->_decorator,
+				array($this->_resultset)
+			);
+		}
 
         return $this->_resultset !== false;
     }
