@@ -40,10 +40,10 @@ require_once LIBRARY_PATH.'/data-source/DataSource.php';
  *
  * Depends on database library.
  *
- * @id $Id: PdoModel.php 346560 2012-04-12 08:28:33Z priitk $
+ * @id $Id: PdoModel.php 347371 2012-04-18 11:57:35Z priitk $
  * @author $Author: priitk $
- * @version $Revision: 346560 $
- * @modified $Date: 2012-04-12 11:28:33 +0300 (N, 12 apr 2012) $
+ * @version $Revision: 347371 $
+ * @modified $Date: 2012-04-18 14:57:35 +0300 (K, 18 apr 2012) $
  * @package Lightspeed
  * @subpackage Model
  */
@@ -1032,7 +1032,11 @@ class PdoModel implements Iterator, DataSource {
 	) {
 		$row = self::fetchOne($query, $bind, $decorator);
 		
-		return array_pop($row);
+		if (is_array($row) && !empty($row)) {
+			return array_pop($row);
+		} else {
+			return null;
+		}
 	}
 	
 	/**
