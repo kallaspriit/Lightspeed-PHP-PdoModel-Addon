@@ -33,10 +33,10 @@ require_once LIBRARY_PATH.'/pdo/DbAdapter.php';
 /**
  * MySQL database adapter
  *
- * @id $Id: MysqlDbAdapter.php 57 2011-02-13 12:36:08Z kallaspriit $
- * @author $Author: kallaspriit $
- * @version $Revision: 57 $
- * @modified $Date: 2011-02-13 14:36:08 +0200 (Sun, 13 Feb 2011) $
+ * @id $Id: MysqlDbAdapter.php 349638 2012-05-09 05:50:24Z priitk $
+ * @author $Author: priitk $
+ * @version $Revision: 349638 $
+ * @modified $Date: 2012-05-09 08:50:24 +0300 (K, 09 mai 2012) $
  * @package Lightspeed
  * @subpackage Model
  */
@@ -360,17 +360,16 @@ class MysqlDbAdapter implements DbAdapter {
 		$query,
 		array $bind = array()
 	) {
-		$statement = $connection->prepare($query);
-
-		foreach ($bind as $key => $value) {
-			$statement->bindValue(':'.$key, $value);
-		}
-
-		$statement->execute();
-
+		$statement = null;
+		
+		PdoModel::execute($query, $bind, $statement, $connection);
+		
 		$rowsQuery = 'SELECT FOUND_ROWS() AS `rows`';
-		$rowsStatement = $connection->prepare($rowsQuery);
-		$rowsStatement->execute();
+		
+		$rowsStatement = null;
+		
+		PdoModel::execute($rowsQuery, array(), $rowsStatement, $connection);
+		
 		$rowsData = $rowsStatement->fetch(PDO::FETCH_NUM);
 
 		return $rowsData[0];
@@ -405,30 +404,10 @@ class MysqlDbAdapter implements DbAdapter {
 		$query = 'SELECT SQL_CALC_FOUND_ROWS '.
 			substr($query, 7).' LIMIT '
 			.(int)$offset.', '.(int)$limit;
-
-		$statement = $connection->prepare($query);
-
-		if ($statement === false) {
-			//@codeCoverageIgnoreStart
-			throw new Exception(
-				'Preparing find query "'.$query.'" failed'
-			);
-			//@codeCoverageIgnoreEnd
-		}
-
-		if (!empty($bind)) {
-			foreach ($bind as $column => $value) {
-				$statement->bindValue(':'.$column, $value);
-			}
-		}
-
-		if ($statement->execute() === false) {
-			//@codeCoverageIgnoreStart
-			throw new Exception(
-				'Executing statement for find query "'.$query.'" failed'
-			);
-			//@codeCoverageIgnoreEnd
-		}
+		
+		$statement = null;
+		
+		PdoModel::execute($query, $bind, $statement, $connection);
 
 		return $statement->fetchAll(PDO::FETCH_ASSOC);
 	}

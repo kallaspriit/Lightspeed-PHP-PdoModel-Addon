@@ -33,10 +33,10 @@
  * Adapters need to implement given methods used by PdoModel so the PdoModel
  * can be used to communicate with different database vendors.
  *
- * @id $Id: DbAdapter.php 65 2011-03-01 16:01:06Z kallaspriit $
- * @author $Author: kallaspriit $
- * @version $Revision: 65 $
- * @modified $Date: 2011-03-01 18:01:06 +0200 (Tue, 01 Mar 2011) $
+ * @id $Id: DbAdapter.php 346560 2012-04-12 08:28:33Z priitk $
+ * @author $Author: priitk $
+ * @version $Revision: 346560 $
+ * @modified $Date: 2012-04-12 11:28:33 +0300 (N, 12 apr 2012) $
  * @package Lightspeed
  * @subpackage Model
  */

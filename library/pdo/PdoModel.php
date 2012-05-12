@@ -40,14 +40,39 @@ require_once LIBRARY_PATH.'/data-source/DataSource.php';
  *
  * Depends on database library.
  *
- * @id $Id: PdoModel.php 347371 2012-04-18 11:57:35Z priitk $
+ * @id $Id: PdoModel.php 349638 2012-05-09 05:50:24Z priitk $
  * @author $Author: priitk $
- * @version $Revision: 347371 $
- * @modified $Date: 2012-04-18 14:57:35 +0300 (K, 18 apr 2012) $
+ * @version $Revision: 349638 $
+ * @modified $Date: 2012-05-09 08:50:24 +0300 (K, 09 mai 2012) $
  * @package Lightspeed
  * @subpackage Model
  */
 class PdoModel implements Iterator, DataSource {
+	
+	/**
+	 * Fired before preparing and binding, executing a query.
+	 * 
+	 * Parameters:
+	 * - id
+	 * - query
+	 * - bind
+	 * - connection
+	 */
+	const EVENT_BEFORE_EXECUTE = 'before-execute';
+	
+	/**
+	 * Fired after executing a query.
+	 * 
+	 * Parameters:
+	 * - id
+	 * - query
+	 * - bind
+	 * - statement
+	 * - result
+	 * - error-info
+	 * - connection
+	 */
+	const EVENT_AFTER_EXECUTE = 'after-execute';
 
 	/**
 	 * The default PDO connection to use.
@@ -68,6 +93,20 @@ class PdoModel implements Iterator, DataSource {
 	 * @var DbAdapter
 	 */
 	protected static $_defaultAdapter;
+	
+	/**
+	 * Array of event listeners.
+	 * 
+	 * @var array 
+	 */
+	protected static $_listeners;
+	
+	/**
+	 * Incrementind id of executed queries.
+	 * 
+	 * @var integer 
+	 */
+	protected static $_executeId = 0;
 
 	/**
 	 * The actual connection to use for given instance.
@@ -196,6 +235,28 @@ class PdoModel implements Iterator, DataSource {
 		$className = get_called_class();
 		
 		return new $className($connection, $adapter);
+	}
+	
+	/**
+	 * Adds a new event listener for given event type.
+	 * 
+	 * @param string $type Event type, one of PdoModel::EVENT_.. constants
+	 * @param callable $listener Listener to call
+	 * @throws Exception If listener is not callable
+	 */
+	public static function addEventListener($type, $listener) {
+		if (!is_callable($listener)) {
+			throw new Exception(
+				'Unable to add listener "'.$listener.'" for PDO event "'.$type.
+				'", the listener must be callable'
+			);
+		}
+		
+		if (!isset(self::$_listeners[$type])) {
+			self::$_listeners[$type] = array();
+		}
+		
+		self::$_listeners[$type][] = $listener;
 	}
 
 	/**
@@ -560,16 +621,12 @@ class PdoModel implements Iterator, DataSource {
 			$where,
 			$whereBind
 		);
-
-		$statement = $this->_prepare($query);
-
-		foreach ($whereBind as $column => $value) {
-			$statement->bindValue(':'.$column, $value);
-		}
-
+		
 		$this->_lastBind = $whereBind;
 
-		$statement->execute();
+		$statement = null;
+		
+		self::execute($query, $whereBind, $statement, $this->_connection);
 
 		$data = $statement->fetch(PDO::FETCH_ASSOC);
 		
@@ -625,7 +682,6 @@ class PdoModel implements Iterator, DataSource {
 		$data = $this->getData();
 		$pkName = $this->_primaryKeyName;
 		$pkValue = $this->$pkName;
-		$columns = array_keys($data);
 
 		// if primary key is set, update
 		if (isset($data[$this->_primaryKeyName]) && !$forceInsert) {
@@ -637,41 +693,33 @@ class PdoModel implements Iterator, DataSource {
 				$bind
 			);
 			
-			$statement = $this->_prepare($query);
-
-			foreach ($bind as $column => $value) {
-				$statement->bindValue(':'.$column, $value);
-			}
-
 			$this->_lastBind = $bind;
-
-			if ($statement->execute() === false) {
-				$errorInfo = $statement->errorInfo();
-				
-				//@codeCoverageIgnoreStart
-				throw new Exception(
-					'Updating entry in "'.$tableName.'" with primary key '.
-					'"'.$pkValue.'" failed ['.$errorInfo[0].'-'.$errorInfo[1].
-					']: '.$errorInfo[2]
-				);
-				//@codeCoverageIgnoreEnd
-			}
-
-			return true;
+			
+			$statement = null;
+		
+			return self::execute(
+				$query,
+				$bind,
+				$statement,
+				$this->_connection
+			);
 		} else {
 			// primary key has not been set, insert new row
 			$bind = array();
 			$query = $this->_adapter->assembleInsertQuery($tableName, $data, $bind);
-
-			$statement = $this->_prepare($query);
-
-			foreach ($bind as $column => $value) {
-				$statement->bindValue(':'.$column, $value);
-			}
-
+			
 			$this->_lastBind = $bind;
+			
+			$statement = null;
+		
+			$result = self::execute(
+				$query,
+				$bind,
+				$statement,
+				$this->_connection
+			);
 
-			if (!$statement->execute()) {
+			if (!$result) {
 				$errorInfo = $statement->errorInfo();
 				
 				//@codeCoverageIgnoreStart
@@ -702,7 +750,6 @@ class PdoModel implements Iterator, DataSource {
 	 * @throws Exception If deleting failed
 	 */
 	public function delete($primaryKeyValue = null) {
-		$tableName = self::getTableName();
 		$primaryKeyName = $this->_primaryKeyName;
 		
 		if ($primaryKeyValue === null) {
@@ -787,22 +834,17 @@ class PdoModel implements Iterator, DataSource {
 		$whereBind = array();
 
 		$query = $this->_adapter->assembleDeleteWhereQuery($tableName, $where, $whereBind);
-
-		$statement = $this->_prepare($query);
-
-		foreach ($whereBind as $column => $value) {
-			$statement->bindValue($column, $value);
-		}
-
+		
 		$this->_lastBind = $whereBind;
 
-		if (!$statement->execute()) {
-			//@codeCoverageIgnoreStart
-			throw new Exception(
-				'Deleting entry from "'.$tableName.'" failed'
-			);
-			//@codeCoverageIgnoreEnd
-		}
+		$statement = null;
+		
+		self::execute(
+			$query,
+			$whereBind,
+			$statement,
+			$this->_connection
+		);
 
 		return $statement->rowCount();
 	}
@@ -977,6 +1019,39 @@ class PdoModel implements Iterator, DataSource {
 
 		return $model;
 	}
+
+	/**
+	 * Fetches all rows that match given query.
+	 *
+	 * The optional decorator is expected to be a callable function or method
+	 * that is called for every row that is fetched with the row passed in
+	 * by reference so the decorator may choose to change this data in any way.
+	 *
+	 * @param string $query The query to execute
+	 * @param array $bind Values to bind to the query
+	 * @param function $decorator Callback function to decorate every result
+	 * @param integer $offset Offset from where to slice data from
+	 * @param integer $limit Maximum number of items to take from offset
+	 * @return PdoModel Instance of self
+	 */
+	public static function fetchAll(
+		$query,
+		array $bind = array(),
+		$decorator = null,
+		$offset = 0,
+		$limit = null
+	) {
+		$model = new self();
+		
+		$model->_lastQuery = $query;
+		$model->_lastBind = $bind;
+		$model->_decorator = $decorator;
+		$model->_lastStatement = null;
+		$model->_lastCount = null;
+		$model->_resultset = null;
+
+		return $model->getItems($offset, $limit);
+	}
 	
 	/**
 	 * Fetches and returns a single item matching given query.
@@ -995,20 +1070,11 @@ class PdoModel implements Iterator, DataSource {
 			$connection = self::getDefaultConnection();
 		}
 		
-		$stmt = $connection->prepare($query);
+		$statement = null;
 		
-		foreach ($bind as $bindKey => $bindValue) {
-			$stmt->bindValue($bindKey, $bindValue);
-		}
+		self::execute($query, $bind, $statement, $connection);
 		
-		if (!$stmt->execute()) {
-			throw new Exception(
-				'Executing query "'.$query.'" with parameters "'.
-				json_encode($bind).'" failed'
-			);
-		}
-		
-		$result = $stmt->fetch(PDO::FETCH_ASSOC);
+		$result = $statement->fetch(PDO::FETCH_ASSOC);
 		
 		if ($result === false) {
 			$result = null;
@@ -1044,25 +1110,94 @@ class PdoModel implements Iterator, DataSource {
 	 * 
 	 * @param string $query The query to execute
 	 * @param array $bind Values to bind to the query
+	 * @param PDOStatement $statement The created pdo-statement
+	 * @param PDO $connection Optional non-default connection to use
 	 * @return boolean Did executing the query succeed
 	 */
-	public static function execute($query, array $bind = array()) {
-		$db = self::$_defaultConnection;
+	public static function execute(
+		$query,
+		array $bind = array(),
+		PDOStatement &$statement = null,
+		PDO $connection = null
+	) {
+		if (!isset($connection)) {
+			$connection = self::$_defaultConnection;
+		}
 		
-		if (!isset($db)) {
+		if (!isset($connection)) {
 			throw new Exception(
 				'Unable to execute query "'.$query.'", default database '.
 				'connection has not been set'
 			);
 		}
 		
-		$statement = $db->prepare($query);
+		$id = self::$_executeId++;
+		
+		$beforeEvent = PdoModel::EVENT_BEFORE_EXECUTE;
+		$afterEvent = PdoModel::EVENT_AFTER_EXECUTE;
+		
+		if (isset(self::$_listeners[$beforeEvent])) {
+			foreach (self::$_listeners[$beforeEvent] as $listener) {
+				call_user_func($listener, array(
+					'id' => $id,
+					'query' => $query,
+					'bind' => $bind,
+					'connection' => $connection,
+				));
+			}
+		}
+		
+		$startTime = microtime(true);
+		
+		$statement = $connection->prepare($query);
+		
+		if ($statement === false) {
+			//@codeCoverageIgnoreStart
+			throw new Exception(
+				'Preparing query "'.$query.'" failed'
+			);
+			//@codeCoverageIgnoreEnd
+		}
 		
 		foreach ($bind as $name => $value) {
 			$statement->bindValue($name, $value);
 		}
 		
-		return $statement->execute();
+		$result = $statement->execute();
+		
+		$timeTaken = microtime(true) - $startTime;
+		
+		if (isset(self::$_listeners[$afterEvent])) {
+			$errorInfo = null;
+			
+			if ($result === false) {
+				$errorInfo = $statement->errorInfo();
+			}
+			
+			foreach (self::$_listeners[$afterEvent] as $listener) {
+				call_user_func($listener, array(
+					'id' => $id,
+					'query' => $query,
+					'bind' => $bind,
+					'statement' => $statement,
+					'result' => $result,
+					'error-info' => $errorInfo,
+					'connection' => $connection,
+					'time-taken' => $timeTaken
+				));
+			}
+		}
+		
+		if ($result === false) {
+			$errorInfo = $statement->errorInfo();
+
+			throw new Exception(
+				'Executing "'.$query.'" with "'.json_encode($bind, true).
+				'" failed ['.$errorInfo[0].'-'.$errorInfo[1].']: '.$errorInfo[2]
+			);
+		}
+		
+		return true;
 	}
 
 	/**
@@ -1189,6 +1324,12 @@ class PdoModel implements Iterator, DataSource {
 	 * @return mixed Value at next position or false if there are no more.
 	 */
     public function next() {
+		if (!isset($this->_lastStatement)) {
+			throw new Exception(
+				'Unable to advance pointer, last statement not set'
+			);
+		}
+		
 		$this->_resultset = $this->_lastStatement->fetch(PDO::FETCH_ASSOC);
 		$this->_resultKey++;
 		
@@ -1325,32 +1466,9 @@ class PdoModel implements Iterator, DataSource {
 	 * @return PDOStatement
 	 */
 	public function createStatement($query, array $bind = array()) {
-		$statement = $this->_prepare($query);
-
-		if ($statement === false) {
-			//@codeCoverageIgnoreStart
-			throw new Exception(
-				'Preparing find query "'.$query.'" failed'
-			);
-			//@codeCoverageIgnoreEnd
-		}
+		$statement = null;
 		
-		if (!empty($bind)) {
-			foreach ($bind as $column => $value) {
-				$statement->bindValue(':'.$column, $value);
-			}
-		}
-
-		if ($statement->execute() === false) {
-			$errorInfo = $statement->errorInfo();
-			
-			//@codeCoverageIgnoreStart
-			throw new Exception(
-				'Executing statement for find query "'.$query.'" failed: ['.
-				$errorInfo[0].'/'.$errorInfo[1].'] '.$errorInfo[2]
-			);
-			//@codeCoverageIgnoreEnd
-		}
+		self::execute($query, $bind, $statement, $this->_connection);
 
         return $statement;
 	}

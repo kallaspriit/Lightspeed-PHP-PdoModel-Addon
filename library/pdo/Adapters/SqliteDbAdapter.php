@@ -33,10 +33,10 @@ require_once LIBRARY_PATH.'/pdo/DbAdapter.php';
 /**
  * SQLite database adapter
  *
- * @id $Id: MysqlDbAdapter.php 53 2011-02-09 20:21:33Z kallaspriit $
- * @author $Author: kallaspriit $
- * @version $Revision: 53 $
- * @modified $Date: 2011-02-09 22:21:33 +0200 (Wed, 09 Feb 2011) $
+ * @id $Id: SqliteDbAdapter.php 346560 2012-04-12 08:28:33Z priitk $
+ * @author $Author: priitk $
+ * @version $Revision: 346560 $
+ * @modified $Date: 2012-04-12 11:28:33 +0300 (N, 12 apr 2012) $
  * @package Lightspeed
  * @subpackage Model
  */
